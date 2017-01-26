@@ -1,0 +1,98 @@
+package com.veryworks.android.activitycontrol2;
+
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.View;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+/** WebView 를 사용하는 커스텀 브라우저 class
+ *
+ */
+public class BrowserActivity extends AppCompatActivity implements View.OnClickListener{
+
+    // 뒤로가기와 url 로 이동하기 버튼
+    Button btnBack, btnGo;
+    // Url 입력받는 EditText
+    EditText etUrl;
+    // WebView
+    WebView webView;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_browser);
+
+        // 1. 사용할 위젯을 가져온다.
+        webView = (WebView) findViewById(R.id.webView);
+        etUrl = (EditText) findViewById(R.id.etUrl);
+        btnBack = (Button) findViewById(R.id.btnBack);
+        btnGo = (Button) findViewById(R.id.btnGo);
+
+        // 2. 리스너 달기
+        btnBack.setOnClickListener(this);
+        btnGo.setOnClickListener(this);
+
+        // 속도향상 (검토 필요) - 느리다 함... 차이많이 난다 함...
+        //webView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+        // script 사용 설정 (필수)
+        webView.getSettings().setJavaScriptEnabled(true);
+        // 줌사용
+        webView.getSettings().setSupportZoom(true);
+        webView.getSettings().setBuiltInZoomControls(true);
+
+        // 3. 웹뷰 클라이언트를 지정... (안하면 내장 웹브라우저가 팝업된다.)
+        webView.setWebViewClient(new WebViewClient());
+        // 3.1 둘다 세팅할것 : 프로토콜에 따라 클라이언트가 선택되는것으로 파악됨...
+        webView.setWebChromeClient(new WebChromeClient());
+
+        // 최초 로드시 google.com 이동
+        goUrl("google.com");
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.btnGo:
+                // # 입력창에서 url 가져오기
+                String url = etUrl.getText().toString();
+                goUrl(url);
+                break;
+            case R.id.btnBack:
+                goBack();
+                break;
+        }
+    }
+
+    /** 유효성 검사후 url 로 이동
+     *  http:// 자동입력
+     * @param url
+     */
+    private void goUrl(String url){
+        // 1. 유효성 검사
+        if(url != null && !url.equals("")) {
+            // 2. 프로토콜 검사
+            if (!url.startsWith("http://") && !url.startsWith("https://")){
+                url = "http://" + url;
+            }
+            // 3. url 이동
+            webView.loadUrl(url);
+        }
+    }
+
+    /**
+     * 뒤로가기
+     */
+    private void goBack(){
+        if(webView.canGoBack()) {
+            webView.goBack();
+        }else{
+            Toast.makeText(this,"뒤로갈 수 없습니다!",Toast.LENGTH_SHORT).show();
+        }
+    }
+}
